@@ -46,6 +46,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   String firebaseText = '';
   List<User> users = [];
+  int born = 0;
 
   @override
   void initState() {
@@ -76,8 +77,29 @@ class _MyHomePageState extends State<MyHomePage> {
           title:Text(user.first),subtitle: Text(user.last),trailing: Text(user.born.toString()),
           onLongPress: () async {
             final db = FirebaseFirestore.instance;
-            await db.collection("users").doc(user.id).delete();
-            _fetchFirebaseData();
+            showDialog(
+              context: context,
+              builder: (context) {
+                return AlertDialog(
+                  content: Text('${user.first} ${user.first} を削除しますか??'),
+                  actions: [
+                    TextButton(
+                        child: Text("OK"),
+                        onPressed: () {
+                          db.collection("users").doc(user.id).delete();
+                          _fetchFirebaseData();
+                          Navigator.pop(context);
+                        }
+                    ),
+                    TextButton(
+                      child: Text("Cancel"),
+                      onPressed: () => Navigator.pop(context),
+                    ),
+                  ],
+                );
+              },
+            );
+
           },
           onTap: () {
             showDialog(
@@ -91,12 +113,14 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: YearPicker(
                       firstDate: DateTime(DateTime.now().year - 100, 1),
                       lastDate: DateTime(DateTime.now().year + 100, 1),
-                      initialDate: DateTime.now(),
+                      initialDate: DateTime(user.born),
                       selectedDate: DateTime(user.born),
                       onChanged: (DateTime dateTime) {
-                        FirebaseFirestore.instance.collection("users").doc(user.id).update({'born':dateTime.year});
+                        FirebaseFirestore.instance.
+                        collection("users").doc(user.id).update({'born':dateTime.year});
                         _fetchFirebaseData();
-                        },
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
                 );

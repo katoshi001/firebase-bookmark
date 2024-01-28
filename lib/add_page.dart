@@ -1,15 +1,22 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 
-// ignore: must_be_immutable
-class AddPage extends StatelessWidget {
-  AddPage({super.key});
+class AddPage extends StatefulWidget {
+  const AddPage({super.key});
+
+  @override
+  State<AddPage> createState() => _AddPageState();
+}
+
+class _AddPageState extends State<AddPage> {
 
   String first = '';
   String last = '';
+  int born = 0;
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(),
       body: Padding(
@@ -32,6 +39,57 @@ class AddPage extends StatelessWidget {
                 last = text;
               },
             ),
+            Row(
+              children: [
+                Container(
+                  decoration: const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(
+                        color: Colors.grey,
+                        width: 2,
+                      ),
+                    ),
+                  ),
+                  child: SizedBox(
+                    width: 300,
+                    child: Text(
+                        born != 0 ? born.toString() :'Born',
+                      style:TextStyle(
+                          color: born!= 0? Colors.black : Colors.black54,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.calendar_month),
+                  onPressed: () => showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: Text("Select Year"),
+                        content: Container(
+                          width: 300,
+                          height: 300,
+                          child: YearPicker(
+                            firstDate: DateTime(DateTime.now().year - 100, 1),
+                            lastDate: DateTime(DateTime.now().year + 100, 1),
+                            initialDate: DateTime(DateTime.now().year),
+                            selectedDate: DateTime(born),
+                            onChanged: (DateTime dateTime) {
+                              setState(() {
+                                born = dateTime.year;
+                              });
+                              // Navigator.pop(context);
+                            },
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
             ElevatedButton(
               onPressed: () async {
                 await _addToFirebase();
@@ -44,6 +102,7 @@ class AddPage extends StatelessWidget {
       ),
     );
   }
+
   Future _addToFirebase() async {
     final db = FirebaseFirestore.instance;
 
@@ -51,11 +110,10 @@ class AddPage extends StatelessWidget {
     final user = <String, dynamic>{
       "first": first,
       "last": last,
-      "born": 1991
+      "born": born,
     };
-
     // Add a new document with a generated ID
     db.collection("users").add(user);
   }
-
 }
+
